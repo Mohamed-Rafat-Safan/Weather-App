@@ -18,3 +18,6 @@ and also know the weather for the next 7 days.<br>
  <span> &nbsp;  &nbsp; </span>
 <img src="https://github.com/Mohamed-Rafat-Safan/Weather-App/assets/76782050/fa8bd963-76aa-4b12-b676-03443594e4ae" width="250" height="500" />
 </p>
+
+
+Link the API used in this app: https://www.weatherapi.com/api-explorer.aspx
