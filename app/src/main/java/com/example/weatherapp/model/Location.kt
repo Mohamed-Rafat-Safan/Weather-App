@@ -1,5 +1,9 @@
-package com.example.weatherapp.model
+package com.example.weatherapp.model.forecast
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
 data class Location(
     val country: String,
     val lat: Double,
@@ -9,4 +13,4 @@ data class Location(
     val name: String,
     val region: String,
     val tz_id: String
-)
+):Parcelable

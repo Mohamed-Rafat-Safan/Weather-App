@@ -1,11 +1,11 @@
 package com.example.weatherapp.ui
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
@@ -17,9 +17,15 @@ import com.example.weatherapp.model.forecast.ForecastResponse
 import com.example.weatherapp.model.forecast.Hour
 import com.example.weatherapp.utils.Constants.DAY_NUMBER
 import dagger.hilt.android.AndroidEntryPoint
-import java.time.Month
 import java.util.*
 import kotlin.collections.ArrayList
+import android.net.ConnectivityManager
+import android.net.ConnectivityManager.TYPE_ETHERNET
+import android.net.ConnectivityManager.TYPE_WIFI
+import android.net.NetworkCapabilities.*
+import android.os.Build
+import android.provider.ContactsContract.CommonDataKinds.Email.TYPE_MOBILE
+
 
 
 @AndroidEntryPoint
@@ -30,6 +36,8 @@ class CurrentWeatherFragment : Fragment() {
     private val viewModel: ForecastViewModel by viewModels()
     private lateinit var forecastResponse: ForecastResponse
     private lateinit var hourlyAdapter: HourlyAdapter
+
+    private var  retrieveData = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +63,7 @@ class CurrentWeatherFragment : Fragment() {
 
             val calendar = Calendar.getInstance()
 
-            calendar.set(year, calendar.get(Calendar.MONTH) , day) // set to a non-current date
+            calendar.set(year, calendar.get(Calendar.MONTH), day) // set to a non-current date
 
             val (dayName, monthName) = getDayAndMonthName(calendar)
 
@@ -85,16 +93,26 @@ class CurrentWeatherFragment : Fragment() {
             // this set data in recyclerView of hour weather
             setDataInRecyclerView(todayData.hour)
 
+            retrieveData = true
         }
 
 
 
         binding.tvWeekWeather.setOnClickListener {
-            val action =
-                CurrentWeatherFragmentDirections.actionCurrentWeatherFragmentToFutureListWeatherFragment(
-                    forecastResponse
-                )
-            mNavController.navigate(action)
+            if (hasInternetConnection(requireContext()) && retrieveData) {
+                val action =
+                    CurrentWeatherFragmentDirections.actionCurrentWeatherFragmentToFutureListWeatherFragment(
+                        forecastResponse
+                    )
+                mNavController.navigate(action)
+            } else {
+                val action =
+                    CurrentWeatherFragmentDirections.actionCurrentWeatherFragmentToFutureListWeatherFragment(
+                        null
+                    )
+                mNavController.navigate(action)
+            }
+
         }
 
 
@@ -143,6 +161,37 @@ class CurrentWeatherFragment : Fragment() {
             else -> throw IllegalArgumentException("Invalid month: $month")
         }
         return Pair(dayName, monthName)
+    }
+
+
+    fun hasInternetConnection(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(
+            Context.CONNECTIVITY_SERVICE
+        ) as ConnectivityManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val activeNetwork = connectivityManager.activeNetwork ?: return false
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+
+            return when {
+                capabilities.hasTransport(TRANSPORT_WIFI) -> true
+                capabilities.hasTransport(TRANSPORT_CELLULAR) -> true
+                capabilities.hasTransport(TRANSPORT_ETHERNET) -> true
+                else -> false
+            }
+        } else {
+            connectivityManager.activeNetworkInfo?.run {
+                return when (type) {
+                    TYPE_WIFI -> true
+                    TYPE_MOBILE -> true
+                    TYPE_ETHERNET -> true
+                    else -> false
+                }
+            }
+        }
+
+        return false
     }
 
     override fun onDestroyView() {

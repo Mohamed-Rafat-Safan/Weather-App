@@ -1,5 +1,9 @@
-package com.example.weatherapp.model
+package com.example.weatherapp.model.forecast
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
 data class Current(
     val cloud: Int,
     val condition: Condition,
@@ -24,4 +28,4 @@ data class Current(
     val wind_dir: String,
     val wind_kph: Double,
     val wind_mph: Double
-)
+):Parcelable

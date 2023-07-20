@@ -41,33 +41,35 @@ class WeekWeatherFragment : Fragment(), WeekWeatherAdapter.DayWeatherClickListen
         // Inflate the layout for this fragment
         _binding = FragmentWeekWeatherBinding.inflate(inflater, container, false)
 
-        val forecastResponse = args.currentForecast!!
+        val forecastResponse = args.currentForecast
 
-        Glide.with(this)
-            .load("https:${forecastResponse.current.condition.icon}")
-            .into(binding.ivWeatherIcon)
+        if (forecastResponse != null) {
+            Glide.with(this)
+                .load("https:${forecastResponse.current.condition.icon}")
+                .into(binding.ivWeatherIcon)
 
-        binding.apply {
-            tvWeatherDesc.text = "${forecastResponse.current.condition.text}"
-            tvCloudValue.text = "${forecastResponse.current.cloud}%"
-            tvWindSpeed.text = "${forecastResponse.current.wind_kph} KM/h"
-            tvHumidity.text = "${forecastResponse.current.humidity}%"
+            binding.apply {
+                tvWeatherDesc.text = "${forecastResponse.current.condition.text}"
+                tvCloudValue.text = "${forecastResponse.current.cloud}%"
+                tvWindSpeed.text = "${forecastResponse.current.wind_kph} KM/h"
+                tvHumidity.text = "${forecastResponse.current.humidity}%"
+            }
+
+
+            val year = forecastResponse.location.localtime.substring(0, 4).toInt()
+            val month = forecastResponse.location.localtime.substring(5, 7).toInt()
+            val day = forecastResponse.location.localtime.substring(8, 10).toInt()
+
+            val calendar = Calendar.getInstance()
+            calendar.set(year, month, day) // set to a non-current date
+            val (dayName, monthName) = getDayAndMonthName(calendar)
+
+            binding.tvTodayDate.text = "$dayName, $monthName $day"
+
+
+            // this set data in recyclerView of week weather
+            setDataInRecyclerView(forecastResponse.forecast.forecastday)
         }
-
-
-        val year = forecastResponse.location.localtime.substring(0, 4).toInt()
-        val month = forecastResponse.location.localtime.substring(5, 7).toInt()
-        val day = forecastResponse.location.localtime.substring(8, 10).toInt()
-
-        val calendar = Calendar.getInstance()
-        calendar.set(year, month, day) // set to a non-current date
-        val (dayName, monthName) = getDayAndMonthName(calendar)
-
-        binding.tvTodayDate.text = "$dayName, $monthName $day"
-
-
-        // this set data in recyclerView of week weather
-        setDataInRecyclerView(forecastResponse.forecast.forecastday)
 
 
         binding.ivBack.setOnClickListener {
@@ -151,7 +153,6 @@ class WeekWeatherFragment : Fragment(), WeekWeatherAdapter.DayWeatherClickListen
             tvHumidity.text = "${forecastDay.day.avghumidity}%"
         }
     }
-
 
 
     override fun onDestroyView() {
